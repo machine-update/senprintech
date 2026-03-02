@@ -16,7 +16,11 @@ if (url.startsWith("libsql://") && !authToken) {
 }
 
 const schemaPath = resolve("prisma/turso-init.sql");
-const sql = await readFile(schemaPath, "utf8");
+const rawSql = await readFile(schemaPath, "utf8");
+const sql = rawSql
+  .replaceAll("JSONB", "TEXT")
+  .replaceAll("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")
+  .replaceAll("CREATE UNIQUE INDEX ", "CREATE UNIQUE INDEX IF NOT EXISTS ");
 const client = createClient(
   url.startsWith("libsql://")
     ? { url, authToken }
@@ -24,7 +28,21 @@ const client = createClient(
 );
 
 try {
-  await client.executeMultiple(sql);
+  const statements = sql
+    .split(/;\s*\n/g)
+    .map((statement) => statement.trim())
+    .filter(Boolean);
+
+  for (const statement of statements) {
+    try {
+      await client.execute(`${statement};`);
+    } catch (error) {
+      console.error("Failed SQL statement:");
+      console.error(statement);
+      throw error;
+    }
+  }
+
   console.log(`Schema applied from ${schemaPath} to ${url}`);
 } finally {
   client.close();
