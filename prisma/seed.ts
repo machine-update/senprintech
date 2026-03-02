@@ -1,62 +1,78 @@
 import { prisma } from "../lib/prisma";
 import { hashPassword } from "../lib/password";
 
+async function step<T>(label: string, run: () => Promise<T>) {
+  try {
+    console.log(`[seed] ${label}`);
+    return await run();
+  } catch (error) {
+    console.error(`[seed] failed at: ${label}`);
+    throw error;
+  }
+}
+
 async function main() {
-  await prisma.trackingEvent.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.design.deleteMany();
-  await prisma.review.deleteMany();
-  await prisma.productFaq.deleteMany();
-  await prisma.optionValue.deleteMany();
-  await prisma.option.deleteMany();
-  await prisma.variant.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.address.deleteMany();
-  await prisma.uploadedFile.deleteMany();
-  await prisma.businessQuote.deleteMany();
-  await prisma.coupon.deleteMany();
-  await prisma.user.deleteMany();
+  await step("delete tracking events", () => prisma.trackingEvent.deleteMany());
+  await step("delete order items", () => prisma.orderItem.deleteMany());
+  await step("delete orders", () => prisma.order.deleteMany());
+  await step("delete designs", () => prisma.design.deleteMany());
+  await step("delete reviews", () => prisma.review.deleteMany());
+  await step("delete product faqs", () => prisma.productFaq.deleteMany());
+  await step("delete option values", () => prisma.optionValue.deleteMany());
+  await step("delete options", () => prisma.option.deleteMany());
+  await step("delete variants", () => prisma.variant.deleteMany());
+  await step("delete products", () => prisma.product.deleteMany());
+  await step("delete categories", () => prisma.category.deleteMany());
+  await step("delete addresses", () => prisma.address.deleteMany());
+  await step("delete uploaded files", () => prisma.uploadedFile.deleteMany());
+  await step("delete business quotes", () => prisma.businessQuote.deleteMany());
+  await step("delete coupons", () => prisma.coupon.deleteMany());
+  await step("delete users", () => prisma.user.deleteMany());
 
-  const [user, businessUser, adminUser] = await Promise.all([
-    prisma.user.create({ data: { email: "client@senprintech.com", password: hashPassword("demo"), name: "Client Demo", role: "USER" } }),
-    prisma.user.create({ data: { email: "biz@senprintech.com", password: hashPassword("demo"), name: "Business Demo", role: "BUSINESS", companyName: "Studio Nova", vatNumber: "FR123456789" } }),
-    prisma.user.create({ data: { email: "admin@senprintech.com", password: hashPassword("demo"), name: "Admin", role: "ADMIN" } }),
-  ]);
+  const [user, businessUser, adminUser] = await step("create users", () =>
+    Promise.all([
+      prisma.user.create({ data: { email: "client@senprintech.com", password: hashPassword("demo"), name: "Client Demo", role: "USER" } }),
+      prisma.user.create({ data: { email: "biz@senprintech.com", password: hashPassword("demo"), name: "Business Demo", role: "BUSINESS", companyName: "Studio Nova", vatNumber: "FR123456789" } }),
+      prisma.user.create({ data: { email: "admin@senprintech.com", password: hashPassword("demo"), name: "Admin", role: "ADMIN" } }),
+    ]),
+  );
 
-  await prisma.address.createMany({
-    data: [
-      {
-        userId: user.id,
-        label: "Domicile",
-        fullName: "Client Demo",
-        line1: "10 rue des Ateliers",
-        city: "Paris",
-        postalCode: "75011",
-        country: "France",
-        isDefault: true,
-      },
-      {
-        userId: businessUser.id,
-        label: "Siege",
-        fullName: "Studio Nova",
-        line1: "90 avenue de la Republique",
-        city: "Lyon",
-        postalCode: "69002",
-        country: "France",
-      },
-    ],
-  });
+  await step("create addresses", () =>
+    prisma.address.createMany({
+      data: [
+        {
+          userId: user.id,
+          label: "Domicile",
+          fullName: "Client Demo",
+          line1: "10 rue des Ateliers",
+          city: "Paris",
+          postalCode: "75011",
+          country: "France",
+          isDefault: true,
+        },
+        {
+          userId: businessUser.id,
+          label: "Siege",
+          fullName: "Studio Nova",
+          line1: "90 avenue de la Republique",
+          city: "Lyon",
+          postalCode: "69002",
+          country: "France",
+        },
+      ],
+    }),
+  );
 
-  const [clothing, print, graphics, objects] = await Promise.all([
-    prisma.category.create({ data: { name: "Vetements", slug: "vetements", description: "Textile personnalise" } }),
-    prisma.category.create({ data: { name: "Flyers", slug: "flyers", description: "Supports print marketing" } }),
-    prisma.category.create({ data: { name: "Supports Graphiques", slug: "supports-graphiques", description: "Baches, affiches, kakemonos" } }),
-    prisma.category.create({ data: { name: "Objets", slug: "objets", description: "Goodies personnalises" } }),
-  ]);
+  const [clothing, print, graphics, objects] = await step("create categories", () =>
+    Promise.all([
+      prisma.category.create({ data: { name: "Vetements", slug: "vetements", description: "Textile personnalise" } }),
+      prisma.category.create({ data: { name: "Flyers", slug: "flyers", description: "Supports print marketing" } }),
+      prisma.category.create({ data: { name: "Supports Graphiques", slug: "supports-graphiques", description: "Baches, affiches, kakemonos" } }),
+      prisma.category.create({ data: { name: "Objets", slug: "objets", description: "Goodies personnalises" } }),
+    ]),
+  );
 
-  const tshirt = await prisma.product.create({
+  const tshirt = await step("create tshirt product", () => prisma.product.create({
     data: {
       slug: "tshirt-coton-bio-premium",
       name: "T-Shirt Coton Bio Premium",
@@ -106,9 +122,9 @@ async function main() {
         ],
       },
     },
-  });
+  }));
 
-  const flyer = await prisma.product.create({
+  const flyer = await step("create flyer product", () => prisma.product.create({
     data: {
       slug: "flyers-a5-evenementiel",
       name: "Flyers A5 Evenementiel",
@@ -141,9 +157,9 @@ async function main() {
         create: [{ author: "Agence 21", rating: 5, title: "Tres bon rendu", body: "Couleurs fideles et livraison en 72h." }],
       },
     },
-  });
+  }));
 
-  const banner = await prisma.product.create({
+  const banner = await step("create banner product", () => prisma.product.create({
     data: {
       slug: "kakemono-eco-85x200",
       name: "Kakemono ECO 85x200",
@@ -163,9 +179,9 @@ async function main() {
         ],
       },
     },
-  });
+  }));
 
-  const mug = await prisma.product.create({
+  const mug = await step("create mug product", () => prisma.product.create({
     data: {
       slug: "mug-ceramique-blanc",
       name: "Mug Ceramique Blanc",
@@ -186,16 +202,18 @@ async function main() {
         ],
       },
     },
-  });
+  }));
 
-  await prisma.coupon.createMany({
-    data: [
-      { code: "WELCOME10", type: "PERCENT", value: 10, minAmount: 30, active: true },
-      { code: "PRO25", type: "FIXED", value: 25, minAmount: 200, active: true },
-    ],
-  });
+  await step("create coupons", () =>
+    prisma.coupon.createMany({
+      data: [
+        { code: "WELCOME10", type: "PERCENT", value: 10, minAmount: 30, active: true },
+        { code: "PRO25", type: "FIXED", value: 25, minAmount: 200, active: true },
+      ],
+    }),
+  );
 
-  const order = await prisma.order.create({
+  const order = await step("create order", () => prisma.order.create({
     data: {
       userId: user.id,
       status: "PRODUCTION",
@@ -230,9 +248,9 @@ async function main() {
         ],
       },
     },
-  });
+  }));
 
-  await prisma.design.create({
+  await step("create design", () => prisma.design.create({
     data: {
       name: "Design Team Event",
       userId: user.id,
@@ -252,9 +270,9 @@ async function main() {
         transparentBackground: true,
       },
     },
-  });
+  }));
 
-  await prisma.businessQuote.create({
+  await step("create business quote", () => prisma.businessQuote.create({
     data: {
       userId: businessUser.id,
       companyName: "Studio Nova",
@@ -264,7 +282,7 @@ async function main() {
       notes: "Besoin de polos + flyers pour salon pro Lyon.",
       status: "IN_REVIEW",
     },
-  });
+  }));
 
   console.log("Seed premium acheve avec succes", {
     users: [user.email, businessUser.email, adminUser.email],
