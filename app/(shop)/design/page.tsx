@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { normalizeProduct } from "@/lib/products";
 import DesignerCanvas from "@/components/designer/DesignerCanvas";
 import TrustProofBar from "@/components/shop/TrustProofBar";
 
@@ -10,6 +11,7 @@ export default async function DesignPage({ searchParams }: { searchParams: Promi
     : firstProduct;
 
   if (!product) return <main style={{ padding: 20 }}>Aucun produit disponible pour le configurateur.</main>;
+  const normalizedProduct = normalizeProduct(product);
 
   return (
     <main style={{ maxWidth: 1120, margin: "0 auto", padding: "34px 20px 48px" }}>
@@ -17,7 +19,7 @@ export default async function DesignPage({ searchParams }: { searchParams: Promi
       <p style={{ margin: "8px 0 0", color: "#475569" }}>Zone de sécurité, édition texte/image, export et ajout au panier.</p>
       <TrustProofBar />
       <div className="surface-card" style={{ marginTop: 14, padding: 10 }}>
-      <DesignerCanvas product={product} />
+      <DesignerCanvas product={normalizedProduct} />
       </div>
     </main>
   );

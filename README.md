@@ -17,10 +17,29 @@ SenPrinTech est une base MVP complete pour la personnalisation et l'impression:
 
 ## Lancement local
 1. `npm install`
-2. Configurer `.env` (DATABASE_URL)
-3. `npx prisma db push`
+2. Configurer `.env`
+3. `npm run prisma:push`
 4. `npx prisma db seed`
 5. `npm run dev`
+
+## Variables d'environnement Turso / Vercel
+```env
+DATABASE_URL=libsql://your-db-name.turso.io
+TURSO_DATABASE_URL=libsql://your-db-name.turso.io
+TURSO_AUTH_TOKEN=your-turso-auth-token
+NEXT_PUBLIC_URL=https://your-project.vercel.app
+NEXTAUTH_URL=https://your-project.vercel.app
+NEXTAUTH_SECRET=replace-with-a-long-random-secret
+STRIPE_SECRET_KEY=sk_test_placeholder
+```
+
+`DATABASE_URL` peut pointer vers Turso au runtime. Sans variable distante, `npm run prisma:push` initialise automatiquement `file:./prisma/dev.db` en local.
+
+## Bootstrap Turso
+1. Exporter `TURSO_DATABASE_URL` et `TURSO_AUTH_TOKEN`
+2. Lancer `npm run turso:bootstrap`
+
+`npm run turso:init` applique le schema SQLite compatible Turso contenu dans `prisma/turso-init.sql`, puis `npm run prisma:seed` injecte les donnees de demo via l'adapter Turso.
 
 ## Routes principales
 - `/` home premium

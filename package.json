@@ -6,13 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push",
-    "prisma:seed": "prisma db seed"
+    "prisma:push": "node scripts/push-turso-schema.mjs",
+    "prisma:seed": "prisma db seed",
+    "turso:init": "node scripts/push-turso-schema.mjs",
+    "turso:bootstrap": "npm run turso:init && npm run prisma:seed"
   },
   "dependencies": {
+    "@libsql/client": "^0.15.15",
     "@auth/prisma-adapter": "^2.11.1",
+    "@prisma/adapter-libsql": "^6.19.2",
     "@prisma/client": "^6.19.2",
     "@stripe/stripe-js": "^8.7.0",
     "clsx": "^2.1.1",

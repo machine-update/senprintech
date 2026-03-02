@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizeProducts } from "@/lib/products";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -13,8 +14,8 @@ export async function GET(req: Request) {
         q
           ? {
               OR: [
-                { name: { contains: q, mode: "insensitive" } },
-                { description: { contains: q, mode: "insensitive" } },
+                { name: { contains: q } },
+                { description: { contains: q } },
               ],
             }
           : {},
@@ -26,5 +27,5 @@ export async function GET(req: Request) {
     orderBy: { popularity: "desc" },
   });
 
-  return NextResponse.json({ products });
+  return NextResponse.json({ products: normalizeProducts(products) });
 }

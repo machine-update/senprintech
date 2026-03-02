@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { normalizeProducts } from "@/lib/products";
 import PremiumHomeClient from "@/components/shop/home/PremiumHomeClient";
 import { reviewHighlights, uspItems } from "@/lib/mocks";
 
@@ -26,8 +27,9 @@ export default async function HomePage() {
       take: 6,
     }),
   ]);
+  const normalizedProducts = normalizeProducts(products);
 
-  const homeProducts = products.map((product) => ({
+  const homeProducts = normalizedProducts.map((product) => ({
     id: product.id,
     name: product.name,
     description: product.shortDesc ?? product.description,

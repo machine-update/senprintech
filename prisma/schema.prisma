@@ -1,10 +1,11 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 generator client {
   provider = "prisma-client-js"
+  engineType = "client"
 }
 
 enum Role {
@@ -70,7 +71,7 @@ model Product {
   description    String
   guide          String?
   basePrice      Float
-  images         String[]
+  images         Json
   categoryId     String
   category       Category      @relation(fields: [categoryId], references: [id])
   variants       Variant[]

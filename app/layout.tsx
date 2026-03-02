@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import CookieConsent from "@/components/shared/CookieConsent";
@@ -41,7 +41,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         }}
       >
         <Providers>
-          <AppNavigation />
+          <Suspense fallback={null}>
+            <AppNavigation />
+          </Suspense>
 
           {children}
 

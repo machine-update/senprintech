@@ -1,10 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function MotDePasseOubliePage() {
+  return (
+    <Suspense fallback={null}>
+      <MotDePasseOubliePageContent />
+    </Suspense>
+  );
+}
+
+function MotDePasseOubliePageContent() {
   const searchParams = useSearchParams();
   const callbackUrl = useMemo(() => searchParams.get("callbackUrl") ?? "/account", [searchParams]);
   const [email, setEmail] = useState("");

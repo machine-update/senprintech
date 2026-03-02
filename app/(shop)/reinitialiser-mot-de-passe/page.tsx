@@ -1,10 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function ReinitialiserMotDePassePage() {
+  return (
+    <Suspense fallback={null}>
+      <ReinitialiserMotDePassePageContent />
+    </Suspense>
+  );
+}
+
+function ReinitialiserMotDePassePageContent() {
   const searchParams = useSearchParams();
   const token = useMemo(() => searchParams.get("token") ?? "", [searchParams]);
   const [password, setPassword] = useState("");

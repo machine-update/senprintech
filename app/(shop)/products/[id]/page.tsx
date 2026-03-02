@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { normalizeProduct, normalizeProducts } from "@/lib/products";
 import ProductDesigner from "@/components/designer/ProductDesigner";
 import ProductConfigurator from "@/components/shop/ProductConfigurator";
 import ProductCard from "@/components/shop/ProductCard";
@@ -32,6 +33,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </main>
     );
   }
+  const normalizedProduct = normalizeProduct(product);
 
   const relatedProducts = await prisma.product.findMany({
     where: {
@@ -42,10 +44,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     orderBy: [{ popularity: "desc" }, { createdAt: "desc" }],
     take: 4,
   });
+  const normalizedRelatedProducts = normalizeProducts(relatedProducts);
 
   const avgRating =
-    product.reviews.length > 0
-      ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length
+    normalizedProduct.reviews.length > 0
+      ? normalizedProduct.reviews.reduce((acc, review) => acc + review.rating, 0) / normalizedProduct.reviews.length
       : null;
 
   return (
@@ -54,19 +57,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <Link href="/catalogue" style={{ textDecoration: "none", color: "#1d4ed8", fontWeight: 700 }}>
           Catalogue
         </Link>{" "}
-        / <span>{product.category.name}</span> / <span>{product.name}</span>
+        / <span>{normalizedProduct.category.name}</span> / <span>{normalizedProduct.name}</span>
       </div>
 
       <TrustProofBar />
 
       <section className="mobile-stack" style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 20, alignItems: "start" }}>
         <div style={{ display: "grid", gap: 16 }}>
-          <ProductMediaGallery name={product.name} images={product.images} />
+          <ProductMediaGallery name={normalizedProduct.name} images={normalizedProduct.images} />
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 10 }}>
             {[
               { title: "Production locale au Senegal", text: "Atelier certifie - Controle qualite international" },
-              { title: "Livraison rapide", text: `${product.leadTimeDays} jours en moyenne` },
+              { title: "Livraison rapide", text: `${normalizedProduct.leadTimeDays} jours en moyenne` },
               { title: "Satisfaction client", text: "Support dedie avant/apres commande" },
             ].map((item) => (
               <article key={item.title} className="surface-card hover-lift" style={{ padding: 12 }}>
@@ -88,36 +91,36 @@ export default async function ProductPage({ params }: ProductPageProps) {
             }}
           >
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-              <span style={chipStyle}>{product.category.name}</span>
-              <span style={chipStyle}>{product.stockStatus.replaceAll("_", " ")}</span>
-              {product.isNew ? <span style={{ ...chipStyle, background: "#dcfce7", color: "#166534" }}>Nouveau</span> : null}
+              <span style={chipStyle}>{normalizedProduct.category.name}</span>
+              <span style={chipStyle}>{normalizedProduct.stockStatus.replaceAll("_", " ")}</span>
+              {normalizedProduct.isNew ? <span style={{ ...chipStyle, background: "#dcfce7", color: "#166534" }}>Nouveau</span> : null}
             </div>
 
-            <h1 style={{ margin: "0 0 8px", fontSize: 42, lineHeight: 1.05 }}>{product.name}</h1>
-            <p style={{ margin: "0 0 10px", color: "#334155", lineHeight: 1.5 }}>{product.shortDesc ?? product.description}</p>
-            <p style={{ margin: "0 0 10px", fontSize: 31, fontWeight: 900, color: "#0b1f3a" }}>{formatFcfa(product.basePrice)}</p>
+            <h1 style={{ margin: "0 0 8px", fontSize: 42, lineHeight: 1.05 }}>{normalizedProduct.name}</h1>
+            <p style={{ margin: "0 0 10px", color: "#334155", lineHeight: 1.5 }}>{normalizedProduct.shortDesc ?? normalizedProduct.description}</p>
+            <p style={{ margin: "0 0 10px", fontSize: 31, fontWeight: 900, color: "#0b1f3a" }}>{formatFcfa(normalizedProduct.basePrice)}</p>
             <p style={{ margin: 0, color: "#475569", fontSize: 14 }}>
-              {avgRating ? `★ ${avgRating.toFixed(1)} / 5 (${product.reviews.length} avis)` : "Nouveau produit"} • Delai estime: {product.leadTimeDays} jours
+              {avgRating ? `★ ${avgRating.toFixed(1)} / 5 (${normalizedProduct.reviews.length} avis)` : "Nouveau produit"} • Delai estime: {normalizedProduct.leadTimeDays} jours
             </p>
           </div>
 
           <ProductConfigurator
             product={{
-              id: product.id,
-              name: product.name,
-              basePrice: product.basePrice,
-              options: product.options,
-              images: product.images,
+              id: normalizedProduct.id,
+              name: normalizedProduct.name,
+              basePrice: normalizedProduct.basePrice,
+              options: normalizedProduct.options,
+              images: normalizedProduct.images,
             }}
           />
 
           <div className="surface-card" style={{ borderRadius: 12, padding: 14 }}>
             <h3 style={{ margin: "0 0 8px" }}>Guide fichiers d'impression</h3>
             <p style={{ margin: 0, color: "#334155" }}>
-              {product.guide ?? "Formats PNG/SVG/PDF acceptes. 300 DPI recommandes. Transparence et marges controlees."}
+              {normalizedProduct.guide ?? "Formats PNG/SVG/PDF acceptes. 300 DPI recommandes. Transparence et marges controlees."}
             </p>
             <p style={{ margin: "10px 0 0" }}>
-              <Link href={`/design?productId=${product.id}`} style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 700 }}>
+              <Link href={`/design?productId=${normalizedProduct.id}`} style={{ color: "#1d4ed8", textDecoration: "none", fontWeight: 700 }}>
                 Ouvrir le configurateur avancé
               </Link>
             </p>
@@ -128,15 +131,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <section style={{ marginTop: 22, display: "grid", gap: 14 }}>
         <div className="surface-card" style={{ borderRadius: 12, padding: 16 }}>
           <h2 style={{ margin: "0 0 10px", fontSize: 28 }}>Personnalisation rapide</h2>
-          <ProductDesigner product={product} />
+          <ProductDesigner product={normalizedProduct} />
         </div>
 
         <div className="mobile-stack" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 14 }}>
           <div className="surface-card" style={{ borderRadius: 12, padding: 16 }}>
             <h2 style={{ margin: "0 0 10px", fontSize: 24 }}>FAQ produit</h2>
             <div style={{ display: "grid", gap: 12 }}>
-              {product.faqs.length === 0 ? <p style={{ margin: 0, color: "#475569" }}>FAQ a venir.</p> : null}
-              {product.faqs.map((faq) => (
+              {normalizedProduct.faqs.length === 0 ? <p style={{ margin: 0, color: "#475569" }}>FAQ a venir.</p> : null}
+              {normalizedProduct.faqs.map((faq) => (
                 <article key={faq.id} style={{ borderBottom: "1px dashed #e2e8f0", paddingBottom: 10 }}>
                   <p style={{ margin: 0, fontWeight: 800 }}>{faq.question}</p>
                   <p style={{ margin: "4px 0 0", color: "#334155" }}>{faq.answer}</p>
@@ -148,8 +151,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="surface-card" style={{ borderRadius: 12, padding: 16 }}>
             <h2 style={{ margin: "0 0 10px", fontSize: 24 }}>Avis clients</h2>
             <div style={{ display: "grid", gap: 12 }}>
-              {product.reviews.length === 0 ? <p style={{ margin: 0, color: "#475569" }}>Aucun avis pour le moment.</p> : null}
-              {product.reviews.map((review) => (
+              {normalizedProduct.reviews.length === 0 ? <p style={{ margin: 0, color: "#475569" }}>Aucun avis pour le moment.</p> : null}
+              {normalizedProduct.reviews.map((review) => (
                 <article key={review.id} style={{ borderBottom: "1px dashed #e2e8f0", paddingBottom: 10 }}>
                   <p style={{ margin: 0, fontWeight: 800 }}>
                     {review.author} • {"★".repeat(review.rating)}
@@ -168,12 +171,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <section style={{ marginTop: 22 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <h2 style={{ margin: 0, fontSize: 30 }}>Produits similaires</h2>
-            <Link href={`/search?category=${encodeURIComponent(product.category.slug)}`} style={{ textDecoration: "none", color: "#1d4ed8", fontWeight: 700 }}>
+            <Link href={`/search?category=${encodeURIComponent(normalizedProduct.category.slug)}`} style={{ textDecoration: "none", color: "#1d4ed8", fontWeight: 700 }}>
               Voir toute la categorie
             </Link>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12 }}>
-            {relatedProducts.map((item) => (
+            {normalizedRelatedProducts.map((item) => (
               <ProductCard
                 key={item.id}
                 id={item.id}

@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { hashPassword } from "../lib/password";
-
-const prisma = new PrismaClient();
 
 async function main() {
   await prisma.trackingEvent.deleteMany();

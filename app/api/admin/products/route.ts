@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { normalizeProducts, parseProductImages, normalizeProduct } from "@/lib/products";
 
 export async function GET() {
   const products = await prisma.product.findMany({ include: { category: true }, orderBy: { createdAt: "desc" } });
-  return NextResponse.json({ products });
+  return NextResponse.json({ products: normalizeProducts(products) });
 }
 
 export async function POST(req: Request) {
@@ -22,12 +23,12 @@ export async function POST(req: Request) {
       description: body.description,
       shortDesc: body.shortDesc,
       basePrice: Number(body.basePrice ?? 0),
-      images: body.images ?? [],
+      images: parseProductImages(body.images),
       categoryId: category.id,
       isCustomizable: body.isCustomizable ?? true,
       leadTimeDays: Number(body.leadTimeDays ?? 4),
     },
   });
 
-  return NextResponse.json({ product }, { status: 201 });
+  return NextResponse.json({ product: normalizeProduct(product) }, { status: 201 });
 }

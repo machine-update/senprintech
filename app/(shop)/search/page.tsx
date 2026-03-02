@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { normalizeProducts } from "@/lib/products";
 import ProductCard from "@/components/shop/ProductCard";
 import TrustProofBar from "@/components/shop/TrustProofBar";
 import SearchFiltersSidebar from "@/components/shop/SearchFiltersSidebar";
@@ -32,8 +33,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
       q
         ? {
             OR: [
-              { name: { contains: q, mode: "insensitive" as const } },
-              { description: { contains: q, mode: "insensitive" as const } },
+              { name: { contains: q } },
+              { description: { contains: q } },
             ],
           }
         : {},
@@ -68,6 +69,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
     prisma.category.findMany({ orderBy: { name: "asc" } }),
     prisma.product.aggregate({ where: whereBase, _max: { basePrice: true } }),
   ]);
+  const normalizedProducts = normalizeProducts(products);
 
   const maxPriceCap = Math.max(toFcfa(maxPrice._max.basePrice ?? 150), 10000);
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
@@ -116,7 +118,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
           ) : null}
 
           <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 16 }}>
-            {products.map((product) => (
+            {normalizedProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 id={product.id}

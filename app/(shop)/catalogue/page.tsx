@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { normalizeProducts } from "@/lib/products";
 import ProductCard from "@/components/shop/ProductCard";
 import TrustProofBar from "@/components/shop/TrustProofBar";
 
@@ -31,6 +32,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Se
     }),
     prisma.product.count(),
   ]);
+  const normalizedProducts = normalizeProducts(products);
   const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
 
   return (
@@ -119,7 +121,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Se
       ) : null}
 
       <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 14 }}>
-        {products.map((product) => (
+        {normalizedProducts.map((product) => (
           <ProductCard
             key={product.id}
             id={product.id}
