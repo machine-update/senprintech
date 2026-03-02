@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { createClient } from "@libsql/client";
+import { createClient } from "@libsql/client/node";
 
 const defaultLocalUrl = "file:./prisma/dev.db";
 const configuredUrl = process.env.TURSO_DATABASE_URL ?? process.env.DATABASE_URL;
