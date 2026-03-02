@@ -1,0 +1,241 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  BUSINESS
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PRODUCTION
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum StockStatus {
+  IN_STOCK
+  LOW_STOCK
+  ON_DEMAND
+  OUT_OF_STOCK
+}
+
+enum FileModerationStatus {
+  PENDING
+  APPROVED
+  FLAGGED
+  REJECTED
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  password      String
+  name          String?
+  role          Role        @default(USER)
+  companyName   String?
+  vatNumber     String?
+  orders        Order[]
+  designs       Design[]
+  addresses     Address[]
+  uploadedFiles UploadedFile[]
+  quotes        BusinessQuote[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+model Product {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  name           String
+  shortDesc      String?
+  description    String
+  guide          String?
+  basePrice      Float
+  images         String[]
+  categoryId     String
+  category       Category      @relation(fields: [categoryId], references: [id])
+  variants       Variant[]
+  options        Option[]
+  faqs           ProductFaq[]
+  reviews        Review[]
+  isCustomizable Boolean       @default(true)
+  isNew          Boolean       @default(false)
+  popularity     Int           @default(0)
+  leadTimeDays   Int           @default(4)
+  stockStatus    StockStatus   @default(IN_STOCK)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Variant {
+  id         String  @id @default(cuid())
+  name       String
+  priceSurge Float   @default(0)
+  productId  String
+  product    Product @relation(fields: [productId], references: [id])
+}
+
+model Option {
+  id        String        @id @default(cuid())
+  name      String
+  values    OptionValue[]
+  productId String
+  product   Product       @relation(fields: [productId], references: [id])
+}
+
+model OptionValue {
+  id         String @id @default(cuid())
+  label      String
+  priceSurge Float  @default(0)
+  optionId   String
+  option     Option @relation(fields: [optionId], references: [id])
+}
+
+model ProductFaq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  author    String
+  rating    Int
+  title     String
+  body      String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Design {
+  id             String   @id @default(cuid())
+  name           String
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  productId      String?
+  canvasData     Json
+  previewUrl     String
+  qualityChecks  Json?
+  moderationFlag Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  label       String
+  fullName    String
+  line1       String
+  line2       String?
+  city        String
+  postalCode  String
+  country     String
+  phone       String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  total           Float
+  taxAmount       Float           @default(0)
+  shippingPrice   Float           @default(0)
+  discountAmount  Float           @default(0)
+  status          OrderStatus     @default(PENDING)
+  stripeId        String?
+  paymentMethod   String?
+  shippingMethod  String?
+  couponCode      String?
+  trackingNumber  String?
+  notes           String?
+  shippingAddress Json
+  billingAddress  Json?
+  events          TrackingEvent[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id])
+  productId      String
+  productName    String
+  quantity       Int
+  unitPrice      Float
+  customDesignId String?
+  optionSnapshot Json?
+}
+
+model TrackingEvent {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id])
+  status    OrderStatus
+  label     String
+  createdAt DateTime    @default(now())
+}
+
+model Coupon {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  type        String
+  value       Float
+  minAmount   Float?
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model UploadedFile {
+  id          String               @id @default(cuid())
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id])
+  filename    String
+  mimeType    String
+  sizeBytes   Int
+  storageKey  String
+  status      FileModerationStatus @default(PENDING)
+  scanResult  String?
+  createdAt   DateTime             @default(now())
+}
+
+model BusinessQuote {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  companyName  String
+  email        String
+  phone        String?
+  quantity     Int
+  notes        String
+  status       String   @default("NEW")
+  createdAt    DateTime @default(now())
+}

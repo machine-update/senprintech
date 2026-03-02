@@ -1,0 +1,132 @@
+:root {
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --border-soft: #dbe4f0;
+  --shadow-soft: 0 8px 20px -18px rgba(2, 6, 23, 0.45), 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-lift: 0 18px 34px -28px rgba(2, 6, 23, 0.52);
+  --ease-premium: 0.28s ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  transition: all var(--ease-premium);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.surface-card {
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+}
+
+.hover-lift:hover {
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-2px);
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.mobile-sticky-action {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-sticky-aside {
+    position: static !important;
+  }
+
+  .mobile-with-sticky {
+    padding-bottom: 90px !important;
+  }
+
+  .mobile-sticky-action {
+    display: flex;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 80;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    box-shadow: 0 16px 32px -24px rgba(2, 6, 23, 0.55);
+    backdrop-filter: blur(8px);
+    padding: 10px;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.nav-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.nav-desktop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+
+.nav-mobile-toggle {
+  display: none;
+}
+
+.nav-mobile-panel {
+  display: none;
+}
+
+@media (max-width: 920px) {
+  .nav-desktop {
+    display: none;
+  }
+
+  .nav-mobile-toggle {
+    display: inline-grid;
+  }
+
+  .nav-mobile-panel {
+    display: grid;
+    gap: 6px;
+    padding: 10px 20px 14px;
+    border-top: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+  }
+}
