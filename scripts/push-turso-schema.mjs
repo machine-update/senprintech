@@ -18,6 +18,7 @@ if (url.startsWith("libsql://") && !authToken) {
 const schemaPath = resolve("prisma/turso-init.sql");
 const rawSql = await readFile(schemaPath, "utf8");
 const sql = rawSql
+  .replace(/^--.*$/gm, "")
   .replaceAll("JSONB", "TEXT")
   .replaceAll("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")
   .replaceAll("CREATE UNIQUE INDEX ", "CREATE UNIQUE INDEX IF NOT EXISTS ");
@@ -29,20 +30,27 @@ const client = createClient(
 
 try {
   const statements = sql
-    .split(/;\s*\n/g)
+    .split(";")
     .map((statement) => statement.trim())
     .filter(Boolean);
 
-  for (const statement of statements) {
+  for (const [index, statement] of statements.entries()) {
     try {
       await client.execute(`${statement};`);
     } catch (error) {
-      console.error("Failed SQL statement:");
+      console.error(`Failed SQL statement #${index + 1}:`);
       console.error(statement);
       throw error;
     }
   }
 
+  const tables = await client.execute(
+    "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;",
+  );
+  console.log(
+    "Turso tables:",
+    tables.rows.map((row) => String(row.name)),
+  );
   console.log(`Schema applied from ${schemaPath} to ${url}`);
 } finally {
   client.close();
